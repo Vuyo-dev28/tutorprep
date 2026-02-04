@@ -231,13 +231,7 @@ export default function App() {
         />
         <Route 
           path="/reset-password" 
-          element={
-            userProfile ? (
-              <Navigate to="/dashboard" replace />
-            ) : (
-              <ResetPasswordScreen />
-            )
-          } 
+          element={<ResetPasswordScreen />}
         />
         <Route 
           path="/dashboard" 
