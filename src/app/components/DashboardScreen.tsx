@@ -565,7 +565,7 @@ export function DashboardScreen({ profile }: DashboardScreenProps) {
         </motion.div>
 
         {/* Daily Report Section */}
-        <motion.div
+      <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
@@ -582,7 +582,7 @@ export function DashboardScreen({ profile }: DashboardScreenProps) {
           className="mt-6"
         >
           <Leaderboard metric="topics" limit={10} showCurrentUser={true} />
-        </motion.div>
-      </div>
+      </motion.div>
+    </div>
   );
 }

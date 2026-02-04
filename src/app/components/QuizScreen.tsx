@@ -527,8 +527,8 @@ export function QuizScreen() {
               </motion.button>
             )}
             <div className="flex-1">
-              <div className="text-sm font-medium text-gray-600">
-                Question {currentQuestion + 1} of {topicQuestions.length}
+            <div className="text-sm font-medium text-gray-600">
+              Question {currentQuestion + 1} of {topicQuestions.length}
               </div>
             </div>
           </div>
@@ -588,7 +588,7 @@ export function QuizScreen() {
                     onChange={(e) => setAnswerText(e.target.value)}
                     placeholder="Enter your final answer"
                     className="text-lg"
-                    disabled={showResult}
+                      disabled={showResult}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && answerText.trim() && !showResult) {
                         handleCheckAnswer();
