@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://tutorprep.co.za/sitemap.xml
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /api/
+
+# Allow important pages
+Allow: /
+Allow: /about
+Allow: /login
+Allow: /signup
+Allow: /contact
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1

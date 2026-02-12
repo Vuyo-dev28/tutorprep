@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/app/components/ui/button';
+import { SEO } from '../../components/SEO';
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
 import { Label } from '@/app/components/ui/label';
@@ -88,11 +89,17 @@ export function HomeScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 overflow-x-hidden w-full">
-      <Header isAuthenticated={false} />
-      <div className="mx-auto max-w-6xl px-6 py-10 pt-28">
+    <>
+      <SEO 
+        title="Tutor Prep - South African Learning Platform | Past Papers, Tutoring & Study Notes"
+        description="Tutor Prep offers Past Papers, Tutoring (Physical & Virtual), and Exam/Study Notes for South African students. Aligned with CAPS & IEB curricula. POPI Act compliant and secure."
+        keywords="South African tutoring, CAPS curriculum, IEB curriculum, past papers, exam preparation, study notes, online tutoring, virtual tutoring, South Africa education, Grade 4-12, Mathematics, Physics, exam prep, CAPS past papers, IEB past papers"
+      />
+      <div className="min-h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 overflow-x-hidden w-full">
+        <Header isAuthenticated={false} />
+        <div className="mx-auto max-w-6xl px-6 py-10 pt-28">
 
-        <main id="home" className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+          <main id="home" className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -107,14 +114,9 @@ export function HomeScreen() {
               <Globe className="w-4 h-4" />
               <span>Made in South Africa • Aligned with CAPS & IEB</span>
             </motion.p>
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-4xl md:text-5xl font-semibold text-slate-900 leading-tight"
-            >
+            <h1 className="text-4xl md:text-5xl font-semibold text-slate-900 leading-tight">
               The trusted learning platform for South African students
-            </motion.h1>
+            </h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1063,7 +1065,8 @@ export function HomeScreen() {
             </div>
           </div>
         </footer>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
