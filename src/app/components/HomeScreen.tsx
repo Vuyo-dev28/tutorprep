@@ -327,8 +327,8 @@ export function HomeScreen() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {[
-                { number: '2,000+', label: 'Active Students' },
-                { number: '2,000+', label: 'Lessons Completed' },
+                { number: '150+', label: 'Active Students' },
+                { number: '300+', label: 'Lessons Completed' },
                 { number: '95%', label: 'Parent Satisfaction' },
                 { number: '24/7', label: 'Support Available' },
               ].map((stat, index) => (
