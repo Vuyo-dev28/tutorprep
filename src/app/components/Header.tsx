@@ -26,6 +26,7 @@ export function Header({ profile, isAuthenticated = false }: HeaderProps) {
   const [userEmail, setUserEmail] = useState('');
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userProduct, setUserProduct] = useState<'TUTOR' | 'PAST PAPERS' | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,11 +38,37 @@ export function Header({ profile, isAuthenticated = false }: HeaderProps) {
 
   useEffect(() => {
     if (isAuthenticated && supabase) {
-      const loadEmail = async () => {
-        const { data } = await supabase.auth.getUser();
-        setUserEmail(data?.user?.email ?? '');
+      let isMounted = true;
+
+      const loadUserData = async () => {
+        try {
+          const { data } = await supabase.auth.getUser();
+          if (!isMounted) return;
+          
+          setUserEmail(data?.user?.email ?? '');
+          
+          // Load product from profile
+          if (data?.user) {
+            const { data: profileRow } = await supabase
+              .from('profiles')
+              .select('product')
+              .eq('id', data.user.id)
+              .maybeSingle();
+            
+            if (isMounted && (profileRow?.product === 'TUTOR' || profileRow?.product === 'PAST PAPERS')) {
+              setUserProduct(profileRow.product);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading user data:', error);
+        }
       };
-      loadEmail();
+      
+      loadUserData();
+
+      return () => {
+        isMounted = false;
+      };
     }
   }, [isAuthenticated]);
 
@@ -109,39 +136,43 @@ export function Header({ profile, isAuthenticated = false }: HeaderProps) {
                     <BookOpen className="w-5 h-5" />
                     <span className="text-xs font-medium">Dashboard</span>
                   </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate('/subjects')}
-                    className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-colors ${
-                      activeKey === 'subjects' ? 'text-blue-500 bg-blue-50' : 'text-gray-400 hover:text-gray-600'
-                    }`}
-                  >
-                    <Sparkles className="w-5 h-5" />
-                    <span className="text-xs">Learn</span>
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate('/progress')}
-                    className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-colors ${
-                      activeKey === 'progress' ? 'text-blue-500 bg-blue-50' : 'text-gray-400 hover:text-gray-600'
-                    }`}
-                  >
-                    <TrendingUp className="w-5 h-5" />
-                    <span className="text-xs">Progress</span>
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate('/achievements')}
-                    className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-colors ${
-                      activeKey === 'achievements' ? 'text-blue-500 bg-blue-50' : 'text-gray-400 hover:text-gray-600'
-                    }`}
-                  >
-                    <Trophy className="w-5 h-5" />
-                    <span className="text-xs">Awards</span>
-                  </motion.button>
+                  {userProduct !== 'PAST PAPERS' && (
+                    <>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => navigate('/subjects')}
+                        className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-colors ${
+                          activeKey === 'subjects' ? 'text-blue-500 bg-blue-50' : 'text-gray-400 hover:text-gray-600'
+                        }`}
+                      >
+                        <Sparkles className="w-5 h-5" />
+                        <span className="text-xs">Learn</span>
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => navigate('/progress')}
+                        className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-colors ${
+                          activeKey === 'progress' ? 'text-blue-500 bg-blue-50' : 'text-gray-400 hover:text-gray-600'
+                        }`}
+                      >
+                        <TrendingUp className="w-5 h-5" />
+                        <span className="text-xs">Progress</span>
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => navigate('/achievements')}
+                        className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-colors ${
+                          activeKey === 'achievements' ? 'text-blue-500 bg-blue-50' : 'text-gray-400 hover:text-gray-600'
+                        }`}
+                      >
+                        <Trophy className="w-5 h-5" />
+                        <span className="text-xs">Awards</span>
+                      </motion.button>
+                    </>
+                  )}
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -153,6 +184,49 @@ export function Header({ profile, isAuthenticated = false }: HeaderProps) {
                     <MessageSquare className="w-5 h-5" />
                     <span className="text-xs">Support</span>
                   </motion.button>
+                </div>
+                
+                {/* Desktop Profile Dropdown */}
+                <div className="hidden md:flex items-center">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg"
+                      >
+                        <User className="w-5 h-5 text-white" />
+                      </motion.button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuLabel>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-semibold">{profile.name}</span>
+                          {userEmail && <span className="text-xs text-muted-foreground">{userEmail}</span>}
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => navigate('/profile')}>
+                        Update profile
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate('/help')}>
+                        <HelpCircle className="w-4 h-4 mr-2" />
+                        Help & Documentation
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={async () => {
+                          if (supabase) {
+                            await supabase.auth.signOut();
+                            navigate('/');
+                          }
+                        }}
+                      >
+                        Sign out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
                 {/* Mobile Navigation */}
@@ -193,45 +267,49 @@ export function Header({ profile, isAuthenticated = false }: HeaderProps) {
                             <BookOpen className="w-5 h-5" />
                             <span className="font-medium">Dashboard</span>
                           </motion.button>
-                          <motion.button
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => {
-                              navigate('/subjects');
-                              setMobileMenuOpen(false);
-                            }}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left ${
-                              activeKey === 'subjects' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'
-                            }`}
-                          >
-                            <Sparkles className="w-5 h-5" />
-                            <span className="font-medium">Learn</span>
-                          </motion.button>
-                          <motion.button
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => {
-                              navigate('/progress');
-                              setMobileMenuOpen(false);
-                            }}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left ${
-                              activeKey === 'progress' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'
-                            }`}
-                          >
-                            <TrendingUp className="w-5 h-5" />
-                            <span className="font-medium">Progress</span>
-                          </motion.button>
-                          <motion.button
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => {
-                              navigate('/achievements');
-                              setMobileMenuOpen(false);
-                            }}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left ${
-                              activeKey === 'achievements' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'
-                            }`}
-                          >
-                            <Trophy className="w-5 h-5" />
-                            <span className="font-medium">Awards</span>
-                          </motion.button>
+                          {userProduct !== 'PAST PAPERS' && (
+                            <>
+                              <motion.button
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => {
+                                  navigate('/subjects');
+                                  setMobileMenuOpen(false);
+                                }}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left ${
+                                  activeKey === 'subjects' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'
+                                }`}
+                              >
+                                <Sparkles className="w-5 h-5" />
+                                <span className="font-medium">Learn</span>
+                              </motion.button>
+                              <motion.button
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => {
+                                  navigate('/progress');
+                                  setMobileMenuOpen(false);
+                                }}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left ${
+                                  activeKey === 'progress' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'
+                                }`}
+                              >
+                                <TrendingUp className="w-5 h-5" />
+                                <span className="font-medium">Progress</span>
+                              </motion.button>
+                              <motion.button
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => {
+                                  navigate('/achievements');
+                                  setMobileMenuOpen(false);
+                                }}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left ${
+                                  activeKey === 'achievements' ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-50'
+                                }`}
+                              >
+                                <Trophy className="w-5 h-5" />
+                                <span className="font-medium">Awards</span>
+                              </motion.button>
+                            </>
+                          )}
                           <motion.button
                             whileTap={{ scale: 0.95 }}
                             onClick={() => {
@@ -402,6 +480,23 @@ export function Header({ profile, isAuthenticated = false }: HeaderProps) {
                   >
                     Pricing
                   </a>
+                  <a
+                    href="#contact"
+                    className="hover:text-slate-900 transition-colors"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (isHomePage) {
+                        document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      } else {
+                        navigate('/');
+                        setTimeout(() => {
+                          document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }, 100);
+                      }
+                    }}
+                  >
+                    Contact
+                  </a>
                 </nav>
                 {/* Desktop Buttons */}
                 <div className="hidden md:flex items-center gap-2 lg:gap-3 ml-4 lg:ml-8">
@@ -478,6 +573,23 @@ export function Header({ profile, isAuthenticated = false }: HeaderProps) {
                           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left text-gray-700 hover:bg-gray-50"
                         >
                           <span className="font-medium">Pricing</span>
+                        </motion.button>
+                        <motion.button
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => {
+                            if (isHomePage) {
+                              document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            } else {
+                              navigate('/');
+                              setTimeout(() => {
+                                document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                              }, 100);
+                            }
+                            setMobileMenuOpen(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left text-gray-700 hover:bg-gray-50"
+                        >
+                          <span className="font-medium">Contact</span>
                         </motion.button>
                       </nav>
                       <div className="pt-4 border-t space-y-2">

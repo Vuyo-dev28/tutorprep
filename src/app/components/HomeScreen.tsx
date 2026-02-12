@@ -3,6 +3,13 @@ import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
 import { Label } from '@/app/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/app/components/ui/select';
 import { motion } from 'motion/react';
 import { Header } from '@/app/components/Header';
 import { useState } from 'react';
@@ -33,6 +40,15 @@ export function HomeScreen() {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitMessage(null);
+
+    if (!contactForm.subject || contactForm.subject.trim() === '') {
+      setIsSubmitting(false);
+      setSubmitMessage({
+        type: 'error',
+        text: 'Please select a subject.',
+      });
+      return;
+    }
 
     if (!supabase) {
       setIsSubmitting(false);
@@ -105,7 +121,7 @@ export function HomeScreen() {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="text-slate-600 mt-5 text-lg max-w-xl"
             >
-              Built specifically for South African curricula. Tutor Prep helps students excel in CAPS and IEB with personalized lessons, progress tracking, and parent-friendly reports. POPI Act compliant and secure.
+              Built specifically for South African curricula. We offer Past Papers, Tutoring (Physical and Virtual), and Exam/Study Notes to help students excel in CAPS and IEB. Get access to comprehensive study materials, personalized support, and detailed notes that make exam preparation easier. POPI Act compliant and secure.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -232,6 +248,70 @@ export function HomeScreen() {
           </motion.div>
         </main>
 
+        <section id="products" className="mt-20">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-100px' }}
+            transition={{ duration: 0.6 }}
+            className="rounded-3xl bg-white p-10 shadow-2xl ring-1 ring-slate-200"
+          >
+            <div className="text-center mb-10">
+              <p className="text-sm font-semibold text-blue-600">Our Offerings</p>
+              <h2 className="text-3xl font-semibold text-slate-900 mt-3">
+                Everything students need to excel
+              </h2>
+              <p className="text-slate-600 mt-4 max-w-2xl mx-auto">
+                We offer three comprehensive solutions to support South African students in their learning journey.
+              </p>
+            </div>
+            <div className="grid gap-6 md:grid-cols-3">
+              {[
+                {
+                  title: 'Past Papers',
+                  subtitle: 'Exam Preparation',
+                  description: 'Practice with real past exam papers organized by term and subject. Perfect for exam preparation and understanding exam formats.',
+                  features: ['Term 1-4 papers', 'Mathematics & Physics', 'Multiple years', 'Detailed solutions'],
+                },
+                {
+                  title: 'Tutoring',
+                  subtitle: 'Physical & Virtual',
+                  description: 'Access personalized tutoring sessions both in-person and online. Get one-on-one support from qualified tutors aligned with CAPS and IEB curricula.',
+                  features: ['Physical tutoring sessions', 'Virtual online sessions', 'Qualified tutors', 'CAPS & IEB aligned'],
+                },
+                {
+                  title: 'Exam/Study Notes',
+                  subtitle: 'Comprehensive Study Materials',
+                  description: 'Access detailed study notes and exam preparation materials covering all key topics. Perfect for revision and understanding complex concepts.',
+                  features: ['Subject-specific notes', 'Exam-focused content', 'Key concepts explained', 'CAPS & IEB aligned'],
+                },
+              ].map((product, index) => (
+                <motion.div
+                  key={product.title}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  whileHover={{ scale: 1.02, y: -5 }}
+                  className="rounded-2xl bg-gradient-to-br from-blue-50 to-purple-50 p-6 ring-1 ring-slate-200/70"
+                >
+                  <h3 className="text-xl font-semibold text-slate-900">{product.title}</h3>
+                  <p className="text-sm font-medium text-blue-600 mt-1">{product.subtitle}</p>
+                  <p className="text-slate-600 mt-3 text-sm leading-relaxed">{product.description}</p>
+                  <ul className="mt-4 space-y-2">
+                    {product.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-sm text-slate-600">
+                        <span className="text-green-600 mt-0.5">✓</span>
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </section>
+
         {/* Trust Section - Statistics */}
         <section className="mt-20">
           <motion.div
@@ -248,7 +328,7 @@ export function HomeScreen() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {[
                 { number: '2,000+', label: 'Active Students' },
-                { number: '50,000+', label: 'Lessons Completed' },
+                { number: '2,000+', label: 'Lessons Completed' },
                 { number: '95%', label: 'Parent Satisfaction' },
                 { number: '24/7', label: 'Support Available' },
               ].map((stat, index) => (
@@ -350,54 +430,6 @@ export function HomeScreen() {
               </motion.div>
             ))}
           </div>
-        </section>
-
-        <section id="products" className="mt-20">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-100px' }}
-            transition={{ duration: 0.6 }}
-            className="rounded-3xl bg-white p-10 shadow-2xl ring-1 ring-slate-200"
-          >
-            <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
-              <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-              >
-                <p className="text-sm font-semibold text-blue-600">Products</p>
-                <h2 className="text-3xl font-semibold text-slate-900 mt-3">
-                  Everything students need to excel
-                </h2>
-                <p className="text-slate-600 mt-4 max-w-xl">
-                  Interactive lessons, practice quizzes, progress tracking, and automated reports to help students succeed in their studies.
-                </p>
-              </motion.div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {[
-                  'Lesson builder',
-                  'Assessment quizzes',
-                  'Session scheduling',
-                  'Progress reports',
-                ].map((feature, index) => (
-                  <motion.div
-                    key={feature}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
-                    whileHover={{ scale: 1.05 }}
-                    className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200/70"
-                  >
-                    <p className="font-medium text-slate-800">{feature}</p>
-                    <p className="text-sm text-slate-500 mt-1">Included in every plan.</p>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
         </section>
 
         {/* Parent Testimonials */}
@@ -958,15 +990,29 @@ export function HomeScreen() {
                   <Label htmlFor="contact-subject" className="text-gray-700 mb-2 block">
                     Subject *
                   </Label>
-                  <Input
-                    id="contact-subject"
-                    type="text"
-                    placeholder="How can we help?"
+                  <Select
                     value={contactForm.subject}
-                    onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
-                    className="h-12 rounded-2xl bg-gray-50 border-0 focus:bg-white focus:ring-2 focus:ring-blue-600 transition-all"
+                    onValueChange={(value) => setContactForm({ ...contactForm, subject: value })}
                     required
-                  />
+                  >
+                    <SelectTrigger 
+                      id="contact-subject"
+                      className="h-12 rounded-2xl bg-gray-50 border-0 focus:bg-white focus:ring-2 focus:ring-blue-600 transition-all"
+                    >
+                      <SelectValue placeholder="Select a subject..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="General Inquiry">General Inquiry</SelectItem>
+                      <SelectItem value="Tutoring Services">Tutoring Services</SelectItem>
+                      <SelectItem value="Past Papers">Past Papers</SelectItem>
+                      <SelectItem value="Learning Dashboard">Learning Dashboard</SelectItem>
+                      <SelectItem value="Technical Support">Technical Support</SelectItem>
+                      <SelectItem value="Billing & Payment">Billing & Payment</SelectItem>
+                      <SelectItem value="Parent Portal">Parent Portal</SelectItem>
+                      <SelectItem value="Partnership Opportunities">Partnership Opportunities</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>

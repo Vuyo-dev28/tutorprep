@@ -2,6 +2,7 @@ import { useEffect, useState, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from '@/app/components/AppLayout';
 import { ErrorBoundary } from '@/app/components/ErrorBoundary';
+import { SubscriptionCallbackHandler } from '@/app/components/SubscriptionCallbackHandler';
 import { Curriculum, UserProfile } from '@/types';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -26,6 +27,9 @@ const ParentPortalDashboard = lazy(() => import('@/app/components/ParentPortalDa
 const AdminLoginScreen = lazy(() => import('@/app/components/AdminLoginScreen').then(m => ({ default: m.AdminLoginScreen })));
 const AdminDashboard = lazy(() => import('@/app/components/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
 const HelpScreen = lazy(() => import('@/app/components/HelpScreen').then(m => ({ default: m.HelpScreen })));
+const ProductSelectionScreen = lazy(() => import('@/app/components/ProductSelectionScreen').then(m => ({ default: m.ProductSelectionScreen })));
+const PastPapersDashboard = lazy(() => import('@/app/components/PastPapersDashboard').then(m => ({ default: m.PastPapersDashboard })));
+const DashboardWrapper = lazy(() => import('@/app/components/DashboardWrapper').then(m => ({ default: m.DashboardWrapper })));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -36,7 +40,21 @@ const LoadingFallback = () => (
 
 export default function App() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [userProduct, setUserProduct] = useState<'TUTOR' | 'PAST PAPERS' | null>(null);
   const [isAuthReady, setIsAuthReady] = useState(false);
+
+  const debugAuth = (...args: any[]) => {
+    if (import.meta.env.DEV) {
+      console.debug('[auth]', ...args);
+    }
+  };
+
+  const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number, fallback: T) => {
+    const timeout = new Promise<T>(resolve => {
+      setTimeout(() => resolve(fallback), timeoutMs);
+    });
+    return Promise.race([promise, timeout]);
+  };
 
   const buildProfile = (options: {
     name?: string | null;
@@ -68,11 +86,18 @@ export default function App() {
         return;
       }
 
-      const { data: sessionData } = await supabase.auth.getSession();
+      debugAuth('app:loadProfile:start');
+      const { data: sessionData } = await withTimeout(
+        supabase.auth.getSession(),
+        3000,
+        { data: { session: null } } as any
+      );
+      
       const sessionUser = sessionData.session?.user;
 
       if (!sessionUser) {
         if (isActive) {
+          debugAuth('app:loadProfile:no-session');
           setUserProfile(null);
           setIsAuthReady(true);
         }
@@ -82,11 +107,17 @@ export default function App() {
       // Allow access even if email is not confirmed
       // We'll show a banner reminder instead of blocking access
 
-      const { data: profileRow } = await supabase
-        .from('profiles')
-        .select('full_name, grade')
-        .eq('id', sessionUser.id)
-        .maybeSingle();
+      debugAuth('app:profile:query:start', { userId: sessionUser.id });
+      const { data: profileRow } = await withTimeout(
+        supabase
+          .from('profiles')
+          .select('full_name, grade, product')
+          .eq('id', sessionUser.id)
+          .maybeSingle(),
+        4000,
+        { data: null } as any
+      );
+      debugAuth('app:profile:query:resolved', { hasProfile: Boolean(profileRow) });
 
       if (isActive) {
         setUserProfile(
@@ -96,6 +127,12 @@ export default function App() {
             curriculum: sessionUser.user_metadata?.curriculum,
           })
         );
+        // Set product if it exists and is valid
+        if (profileRow?.product === 'TUTOR' || profileRow?.product === 'PAST PAPERS') {
+          setUserProduct(profileRow.product);
+        } else {
+          setUserProduct(null);
+        }
         setIsAuthReady(true);
       }
     };
@@ -106,24 +143,100 @@ export default function App() {
       return () => undefined;
     }
 
+    // Function to manually refresh profile and product (exposed globally)
+    const refreshUserData = async () => {
+      if (!supabase || !isActive) return;
+
+      debugAuth('app:refreshUserData:start');
+      const { data: sessionData } = await supabase.auth.getSession();
+      const sessionUser = sessionData.session?.user;
+
+      if (!sessionUser) {
+        if (isActive) {
+          setUserProfile(null);
+          setUserProduct(null);
+        }
+        return;
+      }
+
+      const { data: profileRow } = await supabase
+        .from('profiles')
+        .select('full_name, grade, product')
+        .eq('id', sessionUser.id)
+        .maybeSingle();
+      debugAuth('app:refreshUserData:profile', { hasProfile: Boolean(profileRow) });
+
+      if (isActive) {
+        setUserProfile(
+          buildProfile({
+            name: profileRow?.full_name ?? sessionUser.user_metadata?.full_name ?? sessionUser.email,
+            grade: profileRow?.grade ?? sessionUser.user_metadata?.grade,
+            curriculum: sessionUser.user_metadata?.curriculum,
+          })
+        );
+        
+        if (profileRow?.product === 'TUTOR' || profileRow?.product === 'PAST PAPERS') {
+          setUserProduct(profileRow.product);
+        } else {
+          setUserProduct(null);
+        }
+      }
+    };
+    
+    // Expose refresh function globally for ProductSelectionScreen to call
+    (window as any).refreshUserData = refreshUserData;
+
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isActive) {
         return;
       }
 
+      debugAuth('app:onAuthStateChange', { event, hasSession: Boolean(session?.user) });
       if (!session?.user) {
         setUserProfile(null);
+        setUserProduct(null);
         setIsAuthReady(true);
         return;
       }
 
-      setUserProfile(
-        buildProfile({
-          name: session.user.user_metadata?.full_name ?? session.user.email,
-          grade: session.user.user_metadata?.grade,
-          curriculum: session.user.user_metadata?.curriculum,
-        })
-      );
+      // Load profile with product
+      if (supabase) {
+        debugAuth('app:onAuthStateChange:profile:start', { userId: session.user.id });
+        const { data: profileRow } = await withTimeout(
+          supabase
+            .from('profiles')
+            .select('full_name, grade, product')
+            .eq('id', session.user.id)
+            .maybeSingle(),
+          4000,
+          { data: null } as any
+        );
+        debugAuth('app:onAuthStateChange:profile:resolved', { hasProfile: Boolean(profileRow) });
+
+        setUserProfile(
+          buildProfile({
+            name: profileRow?.full_name ?? session.user.user_metadata?.full_name ?? session.user.email,
+            grade: profileRow?.grade ?? session.user.user_metadata?.grade,
+            curriculum: session.user.user_metadata?.curriculum,
+          })
+        );
+        
+        // Set product if it exists and is valid
+        if (profileRow?.product === 'TUTOR' || profileRow?.product === 'PAST PAPERS') {
+          setUserProduct(profileRow.product);
+        } else {
+          setUserProduct(null);
+        }
+      } else {
+        setUserProfile(
+          buildProfile({
+            name: session.user.user_metadata?.full_name ?? session.user.email,
+            grade: session.user.user_metadata?.grade,
+            curriculum: session.user.user_metadata?.curriculum,
+          })
+        );
+        setUserProduct(null);
+      }
       setIsAuthReady(true);
 
       // Send welcome message when user signs in (non-blocking)
@@ -163,6 +276,7 @@ export default function App() {
     return () => {
       isActive = false;
       authListener.subscription.unsubscribe();
+      delete (window as any).refreshUserData;
     };
   }, []);
 
@@ -178,11 +292,12 @@ export default function App() {
     <ErrorBoundary>
       <Router>
         <Suspense fallback={<LoadingFallback />}>
+          <SubscriptionCallbackHandler />
           <Routes>
         <Route 
           path="/" 
             element={
-              userProfile ? (
+              userProfile && userProduct ? (
                 <Navigate to="/dashboard" replace />
               ) : (
                 <HomeScreen />
@@ -192,7 +307,7 @@ export default function App() {
         <Route 
           path="/about" 
           element={
-            userProfile ? (
+            userProfile && userProduct ? (
               <Navigate to="/dashboard" replace />
             ) : (
               <AboutScreen />
@@ -202,7 +317,7 @@ export default function App() {
         <Route 
           path="/login" 
           element={
-            userProfile ? (
+            userProfile && userProduct ? (
               <Navigate to="/dashboard" replace />
             ) : (
               <LoginScreen />
@@ -212,7 +327,7 @@ export default function App() {
         <Route 
           path="/signup" 
           element={
-            userProfile ? (
+            userProfile && userProduct ? (
               <Navigate to="/dashboard" replace />
             ) : (
               <SignupScreen />
@@ -222,7 +337,7 @@ export default function App() {
         <Route 
           path="/forgot-password" 
           element={
-            userProfile ? (
+            userProfile && userProduct ? (
               <Navigate to="/dashboard" replace />
             ) : (
               <ForgotPasswordScreen />
@@ -234,12 +349,14 @@ export default function App() {
           element={<ResetPasswordScreen />}
         />
         <Route 
+          path="/select-product" 
+          element={<ProductSelectionScreen />}
+        />
+        <Route 
           path="/dashboard" 
           element={
             userProfile ? (
-              <AppLayout profile={userProfile}>
-              <DashboardScreen profile={userProfile} />
-              </AppLayout>
+              <DashboardWrapper profile={userProfile} />
             ) : (
               <Navigate to="/" replace />
             )

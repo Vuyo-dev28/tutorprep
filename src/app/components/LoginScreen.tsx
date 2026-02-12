@@ -7,6 +7,12 @@ import { supabase } from '@/lib/supabaseClient';
 import { motion } from 'motion/react';
 import { Header } from '@/app/components/Header';
 
+const debugAuth = (...args: any[]) => {
+  if (import.meta.env.DEV) {
+    console.debug('[auth]', ...args);
+  }
+};
+
 const sendWelcomeMessage = async () => {
   if (!supabase) return;
 
@@ -57,6 +63,7 @@ export function LoginScreen() {
     }
 
     setIsLoading(true);
+    debugAuth('login:start', { email });
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -64,6 +71,7 @@ export function LoginScreen() {
     });
 
     setIsLoading(false);
+    debugAuth('login:resolved', { hasError: Boolean(error) });
 
     if (error) {
       setErrorMessage(error.message);
@@ -75,6 +83,7 @@ export function LoginScreen() {
       console.error('Error sending welcome message:', err);
     });
 
+    debugAuth('login:navigate', '/dashboard');
     navigate('/dashboard');
   };
 

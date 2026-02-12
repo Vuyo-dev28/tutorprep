@@ -89,41 +89,60 @@ export function SignupScreen() {
 
     // If signup successful, user is automatically logged in (email confirmation is disabled)
     if (data.session && data.user) {
+      setSuccessMessage('Account created successfully! Redirecting to product selection...');
       setIsLoading(false);
-      setSuccessMessage('Account created successfully! Redirecting...');
-      // Small delay to show success message, then navigate
+
+      // Use window.location to force full page reload so App.tsx picks up auth state
       setTimeout(() => {
-        navigate('/dashboard');
-      }, 500);
-    } else if (data.user) {
-      // Fallback: User created but no session yet (shouldn't happen with email confirmation disabled)
-      setIsLoading(false);
-      setSuccessMessage('Account created! Redirecting...');
-      
-      // Wait a moment for session to be established, then navigate
-      setTimeout(async () => {
-        if (supabase) {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session?.user) {
-            navigate('/dashboard');
-          } else {
-            // Navigate anyway - auth state will update
-            navigate('/dashboard');
-          }
-        } else {
-          navigate('/dashboard');
-        }
-      }, 1000);
-    } else {
-      // No user returned (shouldn't happen, but handle it)
-      setIsLoading(false);
-      setErrorMessage('Account creation failed. Please try again.');
+        window.location.href = '/select-product';
+      }, 800);
+      return;
     }
+
+    if (data.user) {
+      // Fallback: User created but no session yet (email confirmation may be enabled)
+      setSuccessMessage('Account created! Signing you in...');
+      try {
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (signInError || !signInData.session) {
+          setIsLoading(false);
+          setSuccessMessage('');
+          setErrorMessage('Account created. Please check your email to confirm, then log in.');
+          return;
+        }
+
+        setIsLoading(false);
+        window.location.href = '/select-product';
+        return;
+      } catch (signInErr) {
+        console.error('Error signing in after signup:', signInErr);
+        setIsLoading(false);
+        setSuccessMessage('');
+        setErrorMessage('Account created, but sign-in failed. Please log in.');
+        return;
+      }
+    }
+
+    // No user returned
+    setIsLoading(false);
+    setErrorMessage('Account creation failed. Please try again.');
   };
 
   const passwordsMatch = password.length > 0 && password === confirmPassword;
+  const isPasswordValid = password.length >= 6;
+  const isEmailValid = email.includes('@') && email.includes('.');
+  const isParentEmailValid = parentEmail.trim() === '' || (parentEmail.includes('@') && parentEmail.includes('.'));
+  
   // Only allow submission when all required fields are filled (step 3)
-  const canContinue = step === 1 ? name && email : step === 2 ? passwordsMatch : name && email && grade && schoolName && parentEmail && curriculum;
+  const canContinue = step === 1 
+    ? name.trim() && isEmailValid
+    : step === 2 
+    ? passwordsMatch && isPasswordValid
+    : name.trim() && isEmailValid && grade && schoolName.trim() && parentEmail.trim() && isParentEmailValid && curriculum;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100">
@@ -243,6 +262,9 @@ export function SignupScreen() {
                     className="h-12 rounded-2xl bg-gray-50 border-0 focus:bg-white focus:ring-2 focus:ring-blue-600 transition-all"
                     required
                   />
+                  {password.length > 0 && !isPasswordValid && (
+                    <p className="text-sm text-rose-500 mt-2">Password must be at least 6 characters.</p>
+                  )}
                   {confirmPassword.length > 0 && !passwordsMatch && (
                     <p className="text-sm text-rose-500 mt-2">Passwords do not match.</p>
                   )}
@@ -316,6 +338,9 @@ export function SignupScreen() {
                       className="h-12 rounded-2xl bg-gray-50 border-0 focus:bg-white focus:ring-2 focus:ring-blue-600 transition-all"
                       required
                     />
+                  {parentEmail.length > 0 && !isParentEmailValid && (
+                    <p className="text-sm text-rose-500 mt-2">Please enter a valid email address.</p>
+                  )}
                   <p className="text-xs text-gray-500 mt-1">
                     Add your parent/guardian's email to enable parent portal access
                   </p>

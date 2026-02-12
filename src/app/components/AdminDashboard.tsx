@@ -20,6 +20,7 @@ import { ContactSubmissions } from './ContactSubmissions';
 import { AdminMessages } from './AdminMessages';
 import { AdminTutorChat } from './AdminTutorChat';
 import { ParentAccessManagement } from './ParentAccessManagement';
+import { PastPapersManagement } from './PastPapersManagement';
 
 type Stats = {
   totalStudents: number;
@@ -166,10 +167,11 @@ export function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto px-6 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="upload">Upload Content</TabsTrigger>
             <TabsTrigger value="content">Manage Content</TabsTrigger>
+            <TabsTrigger value="past-papers">Past Papers</TabsTrigger>
             <TabsTrigger value="contacts">Contact Forms</TabsTrigger>
             <TabsTrigger value="messages">User Messages</TabsTrigger>
             <TabsTrigger value="tutor-chat">Ask A Tutor</TabsTrigger>
@@ -242,6 +244,10 @@ export function AdminDashboard() {
 
           <TabsContent value="content" className="space-y-6">
             <ContentManagement />
+          </TabsContent>
+
+          <TabsContent value="past-papers" className="space-y-6">
+            <PastPapersManagement />
           </TabsContent>
 
           <TabsContent value="contacts" className="space-y-6">
