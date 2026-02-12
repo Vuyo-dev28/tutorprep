@@ -15,7 +15,7 @@ DROP POLICY IF EXISTS "Users can insert own subscription" ON public.past_paper_s
 CREATE POLICY "Users can insert own subscription"
   ON public.past_paper_subscriptions
   FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK (auth.uid() = user_id);coalesce(expression, ...)
 
 -- Ensure update policy exists (for upsert)
 DROP POLICY IF EXISTS "Users can update own subscription" ON public.past_paper_subscriptions;

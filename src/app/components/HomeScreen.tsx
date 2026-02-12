@@ -272,18 +272,21 @@ export function HomeScreen() {
                   subtitle: 'Exam Preparation',
                   description: 'Practice with real past exam papers organized by term and subject. Perfect for exam preparation and understanding exam formats.',
                   features: ['Term 1-4 papers', 'Mathematics & Physics', 'Multiple years', 'Detailed solutions'],
+                  showContactButton: false,
                 },
                 {
                   title: 'Tutoring',
                   subtitle: 'Physical & Virtual',
                   description: 'Access personalized tutoring sessions both in-person and online. Get one-on-one support from qualified tutors aligned with CAPS and IEB curricula.',
                   features: ['Physical tutoring sessions', 'Virtual online sessions', 'Qualified tutors', 'CAPS & IEB aligned'],
+                  showContactButton: true,
                 },
                 {
                   title: 'Exam/Study Notes',
                   subtitle: 'Comprehensive Study Materials',
                   description: 'Access detailed study notes and exam preparation materials covering all key topics. Perfect for revision and understanding complex concepts.',
                   features: ['Subject-specific notes', 'Exam-focused content', 'Key concepts explained', 'CAPS & IEB aligned'],
+                  showContactButton: false,
                 },
               ].map((product, index) => (
                 <motion.div
@@ -306,6 +309,13 @@ export function HomeScreen() {
                       </li>
                     ))}
                   </ul>
+                  {product.showContactButton && (
+                    <div className="mt-6">
+                      <Button asChild className="w-full rounded-full bg-blue-600 hover:bg-blue-700 text-white">
+                        <a href="#contact">Contact Us</a>
+                      </Button>
+                    </div>
+                  )}
                 </motion.div>
               ))}
             </div>
@@ -865,9 +875,6 @@ export function HomeScreen() {
                 <Button asChild className="rounded-full bg-blue-600 hover:bg-blue-700 text-white px-8">
                   <a href="#contact">Contact Us</a>
                 </Button>
-                <Button asChild variant="outline" className="rounded-full border-2">
-                  <a href="mailto:support@tutorprep.co.za">Email: support@tutorprep.co.za</a>
-                </Button>
               </div>
             </div>
           </motion.div>
@@ -1003,6 +1010,7 @@ export function HomeScreen() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="General Inquiry">General Inquiry</SelectItem>
+                      <SelectItem value="Tutoring">Tutoring</SelectItem>
                       <SelectItem value="Tutoring Services">Tutoring Services</SelectItem>
                       <SelectItem value="Past Papers">Past Papers</SelectItem>
                       <SelectItem value="Learning Dashboard">Learning Dashboard</SelectItem>
