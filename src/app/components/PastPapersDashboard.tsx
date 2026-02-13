@@ -656,7 +656,7 @@ export function PastPapersDashboard({ profile }: PastPapersDashboardProps) {
       
       const subscribeParams = {
         email: user.email,
-        plan: 'PLN_3pankare3c1yee8', // Explicit plan ID for monthly subscription
+        plan: 'PLN_6g747ghfq61svnc', // Explicit plan ID for monthly subscription
         amount: Number.isFinite(monthlyAmountValue) ? monthlyAmountValue : undefined,
         plan_type: 'monthly' as const,
         curriculum: (profile.curriculum || 'CAPS') as 'CAPS' | 'IEB', // Ensure curriculum is set

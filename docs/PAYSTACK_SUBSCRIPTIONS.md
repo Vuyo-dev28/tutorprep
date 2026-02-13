@@ -46,7 +46,7 @@ Call Paystack with your **secret key** (never expose it in the frontend).
 ```bash
 # Set env then run (customer = email or CUS_xxx, plan = PLN_xxx or "monthly"/"yearly" to use env plan code)
 export PAYSTACK_SECRET_KEY=sk_xxx
-export PAYSTACK_PLAN_CODE=PLN_3pankare3c1yee8   # or PAYSTACK_PLAN_MONTHLY_CODE / PAYSTACK_PLAN_YEARLY_CODE
+export PAYSTACK_PLAN_CODE=PLN_6g747ghfq61svnc   # or PAYSTACK_PLAN_MONTHLY_CODE / PAYSTACK_PLAN_YEARLY_CODE
 node scripts/paystack-create-subscription.js customer@email.com monthly
 ```
 
@@ -54,7 +54,7 @@ Or from your own Node backend, require/import and call:
 
 ```js
 import { createPaystackSubscription } from './scripts/paystack-create-subscription.js';
-const data = await createPaystackSubscription('CUS_xxx', 'PLN_3pankare3c1yee8', { authorizationCode: 'AUTH_xxx' });
+const data = await createPaystackSubscription('CUS_xxx', 'PLN_6g747ghfq61svnc', { authorizationCode: 'AUTH_xxx' });
 ```
 
 **Raw Node (https) example:**
@@ -85,7 +85,7 @@ req.end();
 ```
 
 - **customer:** User’s email or Paystack customer code (`CUS_xxx`).
-- **plan:** Plan code from step 1 (e.g. `PLN_3pankare3c1yee8`).
+- **plan:** Plan code from step 1 (e.g. `PLN_6g747ghfq61svnc`).
 - **authorization:** (Optional) Reusable authorization from a previous successful charge. If omitted, Paystack uses the customer’s most recent authorization.
 
 On success, Paystack returns subscription details (e.g. `subscription_code`, `next_payment_date`). Your backend can then update `past_paper_subscriptions` (e.g. via Supabase with the service role or a DB client) with `paystack_subscription_code` and `current_period_end` from `next_payment_date`.

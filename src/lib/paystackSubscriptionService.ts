@@ -40,7 +40,7 @@ export async function initializeSubscription(
   }
 
   // Use explicit plan ID or from params/environment
-  const planId = params.plan || ((import.meta as any).env.VITE_PAYSTACK_PLAN_ID as string | undefined) || 'PLN_3pankare3c1yee8';
+  const planId = params.plan || ((import.meta as any).env.VITE_PAYSTACK_PLAN_ID as string | undefined) || 'PLN_6g747ghfq61svnc';
   if (!planId) {
     throw new Error('Plan ID is required. Provide it in params or set VITE_PAYSTACK_PLAN_ID');
   }
